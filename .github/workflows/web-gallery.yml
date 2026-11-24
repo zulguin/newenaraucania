@@ -1,0 +1,57 @@
+name: Galería web de sprites
+on:
+  push:
+    branches: [main]
+    paths: ['tools/export_web_gallery.py', '.github/workflows/web-gallery.yml']
+  release:
+    types: [published, prereleased, edited]
+  workflow_dispatch:
+  schedule:
+    - cron: '20 3 * * *'
+permissions:
+  contents: write
+concurrency:
+  group: web-gallery
+  cancel-in-progress: true
+jobs:
+  gallery:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install pillow
+      - name: Obtener último proyecto público
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/releases?per_page=50" > releases.json
+          python - <<'PY'
+          import json, os, re
+          rs=json.load(open('releases.json'))
+          choices=[(tuple(map(int,re.findall(r'\d+',r['tag_name'])[:3])),r['tag_name'],a['name']) for r in rs if not r['draft'] for a in r['assets'] if re.search(r'Beta_Proyecto\.zip$',a['name'],re.I) and a['state']=='uploaded']
+          if not choices: raise SystemExit('No hay ZIP de proyecto publicado')
+          _,tag,asset=max(choices)
+          with open(os.environ['GITHUB_ENV'],'a') as f:f.write(f'GALLERY_TAG={tag}\nGALLERY_ASSET={asset}\n')
+          PY
+          gh release download "$(python -c 'import json,re; print(max((tuple(map(int,re.findall(r"\d+",r["tag_name"])[:3])),r["tag_name"],a["name"]) for r in json.load(open("releases.json")) if not r["draft"] for a in r["assets"] if a["name"].endswith("Beta_Proyecto.zip") and a["state"]=="uploaded")[1])')" --pattern '*Beta_Proyecto.zip' --dir /tmp/newen
+      - name: Exportar y validar
+        run: |
+          mkdir -p /tmp/gallery
+          python tools/export_web_gallery.py "/tmp/newen/$GALLERY_ASSET" /tmp/gallery "$GALLERY_TAG"
+          python -c 'import json; m=json.load(open("/tmp/gallery/manifest.json")); assert len(m["heroes"])==12 and len(m["mounts"])>=10 and len(m["bosses"])>=6, m'
+      - name: Actualizar recursos web sin tocar el juego
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git reset --hard origin/main
+          mkdir -p docs/gallery
+          cp -a /tmp/gallery/. docs/gallery/
+          git add docs/gallery
+          if ! git diff --cached --quiet; then
+            git commit -m "Galería animada: $GALLERY_TAG"
+            git push origin HEAD:main
+          fi
