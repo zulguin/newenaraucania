@@ -1,0 +1,247 @@
+{
+  "version": "V317.4",
+  "heroes": {
+    "sh": {
+      "idle": "heroes-sh-idle.webp",
+      "walk": "heroes-sh-walk.webp",
+      "attack": "heroes-sh-attack.webp",
+      "ultimate": "heroes-sh-ultimate.webp",
+      "skill": "heroes-sh-skill.webp"
+    },
+    "ch": {
+      "idle": "heroes-ch-idle.webp",
+      "walk": "heroes-ch-walk.webp",
+      "attack": "heroes-ch-attack.webp",
+      "skill": "heroes-ch-skill.webp",
+      "ultimate": "heroes-ch-ultimate.webp"
+    },
+    "cf": {
+      "idle": "heroes-cf-idle.webp",
+      "walk": "heroes-cf-walk.webp",
+      "attack": "heroes-cf-attack.webp",
+      "skill": "heroes-cf-skill.webp",
+      "ultimate": "heroes-cf-ultimate.webp"
+    }
+  },
+  "bosses": {
+    "chalo": {
+      "idle": "bosses-chalo-idle.webp",
+      "walk": "bosses-chalo-walk.webp",
+      "attack": "bosses-chalo-attack.webp",
+      "ultimate": "bosses-chalo-ultimate.webp",
+      "split": "bosses-chalo-split.webp",
+      "reward": "bosses-chalo-reward.webp"
+    },
+    "caicai": {
+      "idle": "bosses-caicai-idle.webp",
+      "walk": "bosses-caicai-walk.webp",
+      "attack": "bosses-caicai-attack.webp",
+      "skill": "bosses-caicai-skill.webp",
+      "serpent_idle": "bosses-caicai-serpent_idle.webp",
+      "serpent_walk": "bosses-caicai-serpent_walk.webp",
+      "serpent_attack": "bosses-caicai-serpent_attack.webp",
+      "serpent_skill": "bosses-caicai-serpent_skill.webp",
+      "transform": "bosses-caicai-transform.webp"
+    },
+    "tenten": {
+      "idle": "bosses-tenten-idle.webp",
+      "walk": "bosses-tenten-walk.webp",
+      "attack": "bosses-tenten-attack.webp",
+      "skill": "bosses-tenten-skill.webp",
+      "serpent_idle": "bosses-tenten-serpent_idle.webp",
+      "serpent_walk": "bosses-tenten-serpent_walk.webp",
+      "serpent_attack": "bosses-tenten-serpent_attack.webp",
+      "serpent_skill": "bosses-tenten-serpent_skill.webp",
+      "transform": "bosses-tenten-transform.webp"
+    },
+    "pincoya": {
+      "idle": "bosses-pincoya-idle.webp",
+      "walk": "bosses-pincoya-walk.webp",
+      "attack": "bosses-pincoya-attack.webp",
+      "skill": "bosses-pincoya-skill.webp"
+    },
+    "anchi": {
+      "idle": "bosses-anchi-idle.webp",
+      "walk": "bosses-anchi-walk.webp",
+      "attack": "bosses-anchi-attack.webp",
+      "skill": "bosses-anchi-skill.webp"
+    },
+    "cadejo": {
+      "idle": "bosses-cadejo-idle.webp",
+      "walk": "bosses-cadejo-walk.webp",
+      "attack": "bosses-cadejo-attack.webp",
+      "skill": "bosses-cadejo-skill.webp"
+    },
+    "machi_oscura": {
+      "idle": "bosses-machi_oscura-idle.webp",
+      "walk": "bosses-machi_oscura-walk.webp",
+      "attack": "bosses-machi_oscura-attack.webp",
+      "skill": "bosses-machi_oscura-skill.webp"
+    },
+    "llorona": {
+      "idle": "bosses-llorona-idle.webp",
+      "walk": "bosses-llorona-walk.webp",
+      "attack": "bosses-llorona-attack.webp",
+      "skill": "bosses-llorona-skill.webp"
+    },
+    "quetz": {
+      "idle": "bosses-quetz-idle.webp",
+      "walk": "bosses-quetz-walk.webp",
+      "attack": "bosses-quetz-attack.webp",
+      "skill": "bosses-quetz-skill.webp"
+    },
+    "patasola": {
+      "idle": "bosses-patasola-idle.webp",
+      "walk": "bosses-patasola-walk.webp",
+      "attack": "bosses-patasola-attack.webp",
+      "skill": "bosses-patasola-skill.webp"
+    },
+    "chupa": {
+      "idle": "bosses-chupa-idle.webp",
+      "walk": "bosses-chupa-walk.webp",
+      "attack": "bosses-chupa-attack.webp",
+      "skill": "bosses-chupa-skill.webp"
+    },
+    "puma": {
+      "idle": "bosses-puma-idle.webp",
+      "walk": "bosses-puma-walk.webp",
+      "attack": "bosses-puma-attack.webp",
+      "skill": "bosses-puma-skill.webp"
+    },
+    "carm": {
+      "idle": "bosses-carm-idle.webp",
+      "walk": "bosses-carm-walk.webp",
+      "attack": "bosses-carm-attack.webp",
+      "skill": "bosses-carm-skill.webp"
+    },
+    "mapin": {
+      "idle": "bosses-mapin-idle.webp",
+      "walk": "bosses-mapin-walk.webp",
+      "attack": "bosses-mapin-attack.webp",
+      "skill": "bosses-mapin-skill.webp"
+    },
+    "caleu": {
+      "idle": "bosses-caleu-idle.webp",
+      "walk": "bosses-caleu-walk.webp",
+      "attack": "bosses-caleu-attack.webp",
+      "skill": "bosses-caleu-skill.webp"
+    },
+    "pihuy": {
+      "idle": "bosses-pihuy-idle.webp",
+      "walk": "bosses-pihuy-walk.webp",
+      "attack": "bosses-pihuy-attack.webp",
+      "skill": "bosses-pihuy-skill.webp"
+    },
+    "silbon": {
+      "idle": "bosses-silbon-idle.webp",
+      "walk": "bosses-silbon-walk.webp",
+      "attack": "bosses-silbon-attack.webp",
+      "skill": "bosses-silbon-skill.webp"
+    },
+    "trauco": {
+      "idle": "bosses-trauco-idle.webp",
+      "walk": "bosses-trauco-walk.webp",
+      "attack": "bosses-trauco-attack.webp",
+      "skill": "bosses-trauco-skill.webp"
+    },
+    "kong": {
+      "idle": "bosses-kong-idle.webp",
+      "walk": "bosses-kong-walk.webp",
+      "attack": "bosses-kong-attack.webp",
+      "skill": "bosses-kong-skill.webp"
+    }
+  },
+  "npcs": {
+    "viajero": {
+      "idle": "npcs-viajero-idle.webp",
+      "walk": "npcs-viajero-walk.webp"
+    },
+    "cosechadora": {
+      "idle": "npcs-cosechadora-idle.webp",
+      "walk": "npcs-cosechadora-walk.webp"
+    },
+    "aprendiz": {
+      "idle": "npcs-aprendiz-idle.webp",
+      "walk": "npcs-aprendiz-walk.webp"
+    },
+    "guia": {
+      "idle": "npcs-guia-idle.webp",
+      "walk": "npcs-guia-walk.webp"
+    },
+    "sabio": {
+      "idle": "npcs-sabio-idle.webp",
+      "walk": "npcs-sabio-walk.webp"
+    },
+    "anciana": {
+      "idle": "npcs-anciana-idle.webp",
+      "walk": "npcs-anciana-walk.webp"
+    },
+    "cronista": {
+      "idle": "npcs-cronista-idle.webp",
+      "walk": "npcs-cronista-walk.webp"
+    },
+    "herrero": {
+      "idle": "npcs-herrero-idle.webp",
+      "walk": "npcs-herrero-walk.webp"
+    },
+    "mercader": {
+      "idle": "npcs-mercader-idle.webp",
+      "walk": "npcs-mercader-walk.webp"
+    },
+    "mensajero": {
+      "idle": "npcs-mensajero-idle.webp",
+      "walk": "npcs-mensajero-walk.webp"
+    }
+  },
+  "enemies": {
+    "puma": {
+      "idle": "enemies-puma-idle.webp",
+      "walk": "enemies-puma-walk.webp",
+      "attack": "enemies-puma-attack.webp",
+      "skill": "enemies-puma-skill.webp"
+    },
+    "jabali": {
+      "idle": "enemies-jabali-idle.webp",
+      "walk": "enemies-jabali-walk.webp",
+      "attack": "enemies-jabali-attack.webp",
+      "skill": "enemies-jabali-skill.webp"
+    },
+    "maya": {
+      "idle": "enemies-maya-idle.webp",
+      "walk": "enemies-maya-walk.webp",
+      "attack": "enemies-maya-attack.webp",
+      "skill": "enemies-maya-skill.webp"
+    },
+    "hechicera_selknam": {
+      "idle": "enemies-hechicera_selknam-idle.webp",
+      "walk": "enemies-hechicera_selknam-walk.webp",
+      "attack": "enemies-hechicera_selknam-attack.webp",
+      "skill": "enemies-hechicera_selknam-skill.webp"
+    },
+    "sacerdotisa_inca": {
+      "idle": "enemies-sacerdotisa_inca-idle.webp",
+      "walk": "enemies-sacerdotisa_inca-walk.webp",
+      "attack": "enemies-sacerdotisa_inca-attack.webp",
+      "skill": "enemies-sacerdotisa_inca-skill.webp"
+    },
+    "inca": {
+      "idle": "enemies-inca-idle.webp",
+      "walk": "enemies-inca-walk.webp",
+      "attack": "enemies-inca-attack.webp",
+      "skill": "enemies-inca-skill.webp"
+    },
+    "indio": {
+      "idle": "enemies-indio-idle.webp",
+      "walk": "enemies-indio-walk.webp",
+      "attack": "enemies-indio-attack.webp",
+      "skill": "enemies-indio-skill.webp"
+    },
+    "guerrera_mapuche": {
+      "idle": "enemies-guerrera_mapuche-idle.webp",
+      "walk": "enemies-guerrera_mapuche-walk.webp",
+      "attack": "enemies-guerrera_mapuche-attack.webp",
+      "skill": "enemies-guerrera_mapuche-skill.webp"
+    }
+  },
+  "map": "mapa-chile.webp"
+}
