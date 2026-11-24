@@ -1,0 +1,202 @@
+{
+  "version": "V317.18",
+  "npcs": {
+    "anciana": {
+      "idle": "npcs-anciana-idle.webp",
+      "walk": "npcs-anciana-walk.webp"
+    },
+    "aprendiz": {
+      "idle": "npcs-aprendiz-idle.webp",
+      "walk": "npcs-aprendiz-walk.webp"
+    },
+    "cosechadora": {
+      "idle": "npcs-cosechadora-idle.webp",
+      "walk": "npcs-cosechadora-walk.webp"
+    },
+    "cronista": {
+      "idle": "npcs-cronista-idle.webp",
+      "walk": "npcs-cronista-walk.webp"
+    },
+    "guia": {
+      "idle": "npcs-guia-idle.webp",
+      "walk": "npcs-guia-walk.webp"
+    },
+    "herrero": {
+      "idle": "npcs-herrero-idle.webp",
+      "walk": "npcs-herrero-walk.webp"
+    },
+    "mensajero": {
+      "idle": "npcs-mensajero-idle.webp",
+      "walk": "npcs-mensajero-walk.webp"
+    },
+    "mercader": {
+      "idle": "npcs-mercader-idle.webp",
+      "walk": "npcs-mercader-walk.webp"
+    },
+    "sabio": {
+      "idle": "npcs-sabio-idle.webp",
+      "walk": "npcs-sabio-walk.webp"
+    },
+    "viajero": {
+      "idle": "npcs-viajero-idle.webp",
+      "walk": "npcs-viajero-walk.webp"
+    },
+    "guia_chono": {
+      "idle": "npcs-guia_chono-idle.webp",
+      "walk": "npcs-guia_chono-walk.webp"
+    },
+    "triton": {
+      "idle": "npcs-triton-idle.webp",
+      "walk": "npcs-triton-walk.webp"
+    },
+    "guardian_mareas": {
+      "idle": "npcs-guia-idle.webp",
+      "walk": "npcs-guia-walk.webp"
+    },
+    "machi_wenu": {
+      "idle": "npcs-sabio-idle.webp",
+      "walk": "npcs-sabio-walk.webp"
+    },
+    "amauta_willka": {
+      "idle": "npcs-guia-idle.webp",
+      "walk": "npcs-guia-walk.webp"
+    },
+    "abuela_ixmucane": {
+      "idle": "npcs-anciana-idle.webp",
+      "walk": "npcs-anciana-walk.webp"
+    },
+    "anciano_selknam": {
+      "idle": "npcs-viajero-idle.webp",
+      "walk": "npcs-viajero-walk.webp"
+    },
+    "abuelo_karai": {
+      "idle": "npcs-mensajero-idle.webp",
+      "walk": "npcs-mensajero-walk.webp"
+    },
+    "sabio_tlamatini": {
+      "idle": "npcs-cronista-idle.webp",
+      "walk": "npcs-cronista-walk.webp"
+    }
+  },
+  "enemies": {
+    "diaguita": {
+      "idle": "enemies-diaguita-idle.webp",
+      "walk": "enemies-diaguita-walk.webp",
+      "attack": "enemies-diaguita-attack.webp",
+      "skill": "enemies-diaguita-skill.webp",
+      "hurt": "enemies-diaguita-hurt.webp",
+      "recover": "enemies-diaguita-recover.webp"
+    },
+    "aymara": {
+      "idle": "enemies-aymara-idle.webp",
+      "walk": "enemies-aymara-walk.webp",
+      "attack": "enemies-aymara-attack.webp",
+      "skill": "enemies-aymara-skill.webp",
+      "hurt": "enemies-aymara-hurt.webp",
+      "recover": "enemies-aymara-recover.webp"
+    },
+    "guerrera_mapuche": {
+      "idle": "enemies-guerrera_mapuche-idle.webp",
+      "walk": "enemies-guerrera_mapuche-walk.webp",
+      "attack": "enemies-guerrera_mapuche-attack.webp",
+      "skill": "enemies-guerrera_mapuche-skill.webp",
+      "hurt": "enemies-guerrera_mapuche-hurt.webp",
+      "recover": "enemies-guerrera_mapuche-recover.webp"
+    },
+    "hechicera_selknam": {
+      "idle": "enemies-hechicera_selknam-idle.webp",
+      "walk": "enemies-hechicera_selknam-walk.webp",
+      "attack": "enemies-hechicera_selknam-attack.webp",
+      "skill": "enemies-hechicera_selknam-skill.webp",
+      "hurt": "enemies-hechicera_selknam-hurt.webp",
+      "recover": "enemies-hechicera_selknam-recover.webp"
+    },
+    "lickanantay": {
+      "idle": "enemies-lickanantay-idle.webp",
+      "walk": "enemies-lickanantay-walk.webp",
+      "attack": "enemies-lickanantay-attack.webp",
+      "skill": "enemies-lickanantay-skill.webp",
+      "hurt": "enemies-lickanantay-hurt.webp",
+      "recover": "enemies-lickanantay-recover.webp"
+    },
+    "indio": {
+      "idle": "enemies-indio-idle.webp",
+      "walk": "enemies-indio-walk.webp",
+      "attack": "enemies-indio-attack.webp",
+      "skill": "enemies-indio-skill.webp",
+      "hurt": "enemies-indio-hurt.webp",
+      "recover": "enemies-indio-recover.webp"
+    },
+    "jabali": {
+      "idle": "enemies-jabali-idle.webp",
+      "walk": "enemies-jabali-walk.webp",
+      "attack": "enemies-jabali-attack.webp",
+      "skill": "enemies-jabali-skill.webp",
+      "hurt": "enemies-jabali-hurt.webp",
+      "recover": "enemies-jabali-recover.webp"
+    },
+    "puma": {
+      "idle": "enemies-puma-idle.webp",
+      "walk": "enemies-puma-walk.webp",
+      "attack": "enemies-puma-attack.webp",
+      "skill": "enemies-puma-skill.webp",
+      "hurt": "enemies-puma-hurt.webp",
+      "recover": "enemies-puma-recover.webp"
+    },
+    "triton_enemy": {
+      "idle": "enemies-triton_enemy-idle.webp",
+      "walk": "enemies-triton_enemy-walk.webp",
+      "attack": "enemies-triton_enemy-attack.webp"
+    },
+    "mermaid": {
+      "idle": "enemies-mermaid-idle.webp",
+      "walk": "enemies-mermaid-walk.webp",
+      "attack": "enemies-mermaid-attack.webp"
+    },
+    "pig": {
+      "idle": "enemies-pig-idle.webp",
+      "walk": "enemies-pig-walk.webp",
+      "attack": "enemies-pig-attack.webp"
+    },
+    "pigboss": {
+      "idle": "enemies-pigboss-idle.webp",
+      "walk": "enemies-pigboss-walk.webp",
+      "attack": "enemies-pigboss-attack.webp"
+    },
+    "shark": {
+      "idle": "enemies-shark-idle.webp",
+      "walk": "enemies-shark-walk.webp",
+      "attack": "enemies-shark-attack.webp"
+    }
+  },
+  "bosses": {
+    "cecaelia": {
+      "idle": "bosses-cecaelia-idle.webp",
+      "walk": "bosses-cecaelia-walk.webp",
+      "attack": "bosses-cecaelia-attack.webp",
+      "dodge": "bosses-cecaelia-dodge.webp",
+      "hurt": "bosses-cecaelia-hurt.webp",
+      "death": "bosses-cecaelia-death.webp"
+    },
+    "elemental": {
+      "idle": "bosses-elemental-idle.webp",
+      "walk": "bosses-elemental-walk.webp",
+      "attack": "bosses-elemental-attack.webp",
+      "dodge": "bosses-elemental-dodge.webp",
+      "hurt": "bosses-elemental-hurt.webp",
+      "death": "bosses-elemental-death.webp"
+    }
+  },
+  "mounts": {
+    "sharkmount": {
+      "idle": "mounts-sharkmount-idle.webp",
+      "walk": "mounts-sharkmount-walk.webp",
+      "skill": "mounts-sharkmount-skill.webp"
+    },
+    "elementmount": {
+      "idle": "mounts-elementmount-idle.webp",
+      "walk": "mounts-elementmount-walk.webp",
+      "skill": "mounts-elementmount-skill.webp"
+    }
+  }
+}
