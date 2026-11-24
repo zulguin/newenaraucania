@@ -48,10 +48,12 @@ for key,filename,c,r,seq in [
 # Special boss transformations use separate source sheets.
 for key,stem in [("caicai","caicai"),("tenten","tenten")]:
     if "newen279_"+stem+"_human_16.webp" in paths:
-        add("bosses",key,"newen279_"+stem+"_human_16.webp",4,4,{"idle":[0,1,2,3],"attack":[4,5,6,7]})
+        add("bosses",key,"newen279_"+stem+"_human_16.webp",4,4,{"idle":[0,1,2,3],"walk":[4,5,6,7],"attack":[8,9,10,11],"skill":[12,13,14,15]})
         if "newen279_"+stem+"_serpent_16.webp" in paths:
             a=frames("newen279_"+stem+"_human_16.webp",4,4,[0,1,2])+frames("newen279_"+stem+"_serpent_16.webp",4,4,[0,1,2,3,8,9,10,11])
             manifest["bosses"][key]["transform"]=emit("bosses-"+key+"-transform",a,180)
+            for action,seq in {"serpent_idle":[0,1,2,3],"serpent_walk":[4,5,6,7],"serpent_attack":[8,9,10,11],"serpent_skill":[12,13,14,15]}.items():
+                manifest["bosses"][key][action]=emit("bosses-"+key+"-"+action,frames("newen279_"+stem+"_serpent_16.webp",4,4,seq))
 for key in ["millalobo","maite","kuyen","rabbit"]:
     add("bosses",key,"newen314_"+key+".webp",4,4,{"idle":[0,1,2,3],"attack":[4,5,6,7],"ultimate":[12,13,14,15]})
 if "millalobo" in manifest["bosses"] and "newen314_beast.webp" in paths:
@@ -75,9 +77,34 @@ if "newen313_chono_h.png" in paths:
 if "newen253_selection_forest.webp" in paths:
     im=sheet("newen253_selection_forest.webp"); im.thumbnail((1100,620)); im.convert("RGB").save(root/"forest.webp",quality=83);manifest["forest"]="forest.webp"
 # Extra bosses, only when corresponding original atlases exist.
-for key in ["llorona","pincoya","machi_oscura","puma","trauco","mapin","caleu","pihuy","carm","chupa","quetz","silbon","anchi","cadejo","patasola","kong"]:
+for key in ["llorona","machi_oscura","puma","trauco","mapin","caleu","pihuy","carm","chupa","quetz","silbon","anchi","cadejo","patasola","kong"]:
     fname="newen315_boss_"+key+"_48.webp"
     if fname in paths:
         add("bosses",key,fname,8,6,{"idle":[0,1,2,3,4,5]})
+# Pincoya: only the approved red-haired, green-dress atlas used by the game.
+add("bosses","pincoya","newen280_boss_pincoya_16.webp",4,4,{"idle":[0,1,2,3],"walk":[4,5,6,7],"attack":[8,9,10,11],"skill":[12,13,14,15]})
+# Chalo has original individual portraits, not an animation atlas.
+if all(n in paths for n in ["newen244_chalo_main.png","newen244_chalo_split.png","newen244_bag_camping.png"]):
+    main,split,bag=[sheet(n) for n in ["newen244_chalo_main.png","newen244_chalo_split.png","newen244_bag_camping.png"]]
+    import math
+    def portrait_motion(im,attack=False):
+        im=normalize([im],224)[0]
+        out=[]
+        for i in range(8):
+            u=i/7
+            dx=round(8*math.sin(math.pi*u)) if attack else 0
+            dy=round(2*math.sin(2*math.pi*u))
+            canvas=Image.new("RGBA",(240,240))
+            canvas.alpha_composite(im,(8+dx,8+dy))
+            out.append(canvas)
+        return out
+    main_frames=portrait_motion(main)
+    child=normalize([split],144)[0]
+    duo=Image.new("RGBA",(320,224))
+    duo.alpha_composite(child,(12,76))
+    duo.alpha_composite(child,(164,76))
+    original=normalize([main],216)[0]
+    before=Image.new("RGBA",(320,224)); before.alpha_composite(original,(52,4))
+    manifest["bosses"]["chalo"]={"idle":emit("bosses-chalo-idle",main_frames),"attack":emit("bosses-chalo-attack",portrait_motion(main,True)), "transform":emit("bosses-chalo-transform",[before]*5+[duo]*6,150),"split":emit("bosses-chalo-split",portrait_motion(split)),"reward":emit("bosses-chalo-reward",[bag])}
 (root/"manifest.json").write_text(json.dumps(manifest,ensure_ascii=False),encoding="utf-8")
 print("Generated",sum(map(len,[manifest["heroes"],manifest["bosses"],manifest["mounts"]])),"entries from",version)
