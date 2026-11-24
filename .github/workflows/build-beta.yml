@@ -7,10 +7,20 @@ on:
         required: true
         default: v316.0.0
         type: string
+      platform:
+        description: Plataforma que se va a compilar
+        required: true
+        default: windows
+        type: choice
+        options:
+          - windows
+          - android
+          - both
 permissions:
   contents: write
 jobs:
   windows:
+    if: inputs.platform == 'windows' || inputs.platform == 'both'
     runs-on: windows-latest
     env:
       GH_TOKEN: ${{ github.token }}
@@ -27,15 +37,21 @@ jobs:
       - name: Compilar instalador Windows
         working-directory: project
         run: |
+          node -e "const fs=require('fs'); const p=require('./package.json'); p.repository={type:'git',url:'https://github.com/zulguin/newenaraucania.git'}; p.build.publish=[{provider:'github',owner:'zulguin',repo:'newenaraucania',channel:'latest'}]; fs.writeFileSync('package.json',JSON.stringify(p,null,2));"
+          if ($LASTEXITCODE -ne 0) { throw "No se pudo configurar el repositorio" }
           npm install --no-audit --no-fund
+          if ($LASTEXITCODE -ne 0) { throw "Error instalando dependencias" }
           npm run build:win
+          if ($LASTEXITCODE -ne 0) { throw "Error compilando Windows" }
       - name: Adjuntar instalador a release
         shell: pwsh
         run: |
           $files = Get-ChildItem project/dist -Filter *.exe
           if (!$files) { throw "No se produjo instalador EXE" }
-          foreach ($f in $files) { gh release upload "$env:RELEASE_TAG" "$($f.FullName)" --repo "$env:GITHUB_REPOSITORY"; if ($LASTEXITCODE -ne 0) { throw "Error subiendo instalador" } }
+          $files = @($files) + @(Get-ChildItem project/dist -File | Where-Object { $_.Name -like "*.blockmap" -or $_.Name -eq "latest.yml" })
+          foreach ($f in $files) { gh release upload "$env:RELEASE_TAG" "$($f.FullName)" --clobber --repo "$env:GITHUB_REPOSITORY"; if ($LASTEXITCODE -ne 0) { throw "Error subiendo instalador" } }
   android:
+    if: inputs.platform == 'android' || inputs.platform == 'both'
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
@@ -66,4 +82,4 @@ jobs:
       - name: Adjuntar APK beta
         run: |
           cp project/android/app/build/outputs/apk/debug/app-debug.apk Newen-Araucania-316-beta-debug.apk
-          gh release upload "$RELEASE_TAG" Newen-Araucania-316-beta-debug.apk --repo "$GITHUB_REPOSITORY"
+          gh release upload "$RELEASE_TAG" Newen-Araucania-316-beta-debug.apk --clobber --repo "$GITHUB_REPOSITORY"
