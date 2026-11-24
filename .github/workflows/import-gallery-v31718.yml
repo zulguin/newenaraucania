@@ -1,0 +1,52 @@
+name: Incorporar galería web V317.18
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Newen_Araucania_Galeria_Web_V317_18.zip'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: import-gallery-v31718
+  cancel-in-progress: false
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validar recursos
+        run: |
+          python - <<'PY'
+          import json, zipfile, pathlib, re
+          archive = pathlib.Path('Newen_Araucania_Galeria_Web_V317_18.zip')
+          with zipfile.ZipFile(archive) as z:
+              assert z.testzip() is None
+              files = {}
+              for info in z.infolist():
+                  if info.is_dir(): continue
+                  assert re.fullmatch(r'gallery-v31718/[a-zA-Z0-9_.-]+\.(webp|json)', info.filename), info.filename
+                  name = info.filename.split('/')[1]
+                  assert name not in files
+                  files[name] = z.read(info)
+              m = json.loads(files['manifest.json'])
+              assert m['version'] == 'V317.18'
+              assert all(len(m[k]) == n for k,n in [('npcs',19),('enemies',13),('bosses',2),('mounts',2)])
+              for k in ['npcs','enemies','bosses','mounts']:
+                  for actions in m[k].values():
+                      assert set(actions.values()) <= files.keys()
+              target = pathlib.Path('docs/gallery-v31718')
+              target.mkdir(parents=True,exist_ok=True)
+              for name,data in files.items():
+                  (target/name).write_bytes(data)
+          PY
+      - name: Guardar galería
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/gallery-v31718
+          if ! git diff --cached --quiet; then
+            git commit -m "Galería animada V317.18"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
