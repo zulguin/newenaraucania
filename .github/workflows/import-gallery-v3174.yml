@@ -1,0 +1,61 @@
+name: Incorporar galería web V317.4
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'Newen_Araucania_Galeria_Web_V317_4.zip'
+      - '.github/workflows/import-gallery-v3174.yml'
+permissions:
+  contents: write
+concurrency:
+  group: import-gallery-v3174
+  cancel-in-progress: false
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validar y extraer recursos web
+        run: |
+          python - <<'PY'
+          import json, zipfile, pathlib
+          from pathlib import PurePosixPath
+          archive = pathlib.Path('Newen_Araucania_Galeria_Web_V317_4.zip')
+          target = pathlib.Path('docs/gallery-v3174')
+          with zipfile.ZipFile(archive) as z:
+              assert z.testzip() is None
+              files = {}
+              for info in z.infolist():
+                  if info.is_dir(): continue
+                  p = PurePosixPath(info.filename)
+                  assert len(p.parts) == 2 and p.parts[0] == 'gallery-v3174' and p.name not in ('.', '..'), info.filename
+                  assert p.suffix in ('.webp', '.json'), info.filename
+                  assert p.name not in files
+                  files[p.name] = z.read(info)
+              manifest = json.loads(files['manifest.json'])
+              assert manifest['version'] == 'V317.4'
+              assert len(manifest['heroes']) == 3 and len(manifest['bosses']) == 19
+              assert len(manifest['npcs']) == 10 and len(manifest['enemies']) == 8
+              expected = {'manifest.json', manifest['map']}
+              for group in ('heroes', 'bosses', 'npcs', 'enemies'):
+                  for actions in manifest[group].values():
+                      expected.update(actions.values())
+              assert expected <= files.keys(), expected - files.keys()
+              target.mkdir(parents=True, exist_ok=True)
+              for name, data in files.items():
+                  (target / name).write_bytes(data)
+              print('Recursos validados:', len(files))
+          PY
+      - name: Guardar solo la galería web
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/gallery-v3174
+          if git diff --cached --quiet; then
+            echo "Galería ya incorporada"
+          else
+            git commit -m "Incorporar sprites y mapa web V317.4"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
