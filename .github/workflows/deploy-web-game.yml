@@ -56,7 +56,10 @@ jobs:
               f.write('GAME_TAG='+tag+'\nGAME_ASSET='+asset+'\n')
           print('Versión web:',tag,asset)
           PY
-          gh release download "$GAME_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$GAME_ASSET" --dir "$RUNNER_TEMP/newen-web"
+      - name: Descargar versión web
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release download "$GAME_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$GAME_ASSET" --dir "$RUNNER_TEMP/newen-web"
       - name: Preparar página y juego
         run: python tools/prepare_web_play.py "$RUNNER_TEMP/newen-web/$GAME_ASSET" "$GAME_TAG" "_site"
       - uses: actions/upload-pages-artifact@v3
