@@ -12,7 +12,7 @@ on:
       web_zip:
         description: Nombre exacto del ZIP web adjunto a la release
         required: true
-        default: Newen_Araucania_V317_18_5_Evento_Mareas_Web.zip
+        default: Newen_Araucania_V317_18_5_Evento_Mareas_Icono_Web.zip
         type: string
       platform:
         description: Plataformas
