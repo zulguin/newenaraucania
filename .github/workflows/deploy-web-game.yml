@@ -62,6 +62,47 @@ jobs:
         run: gh release download "$GAME_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$GAME_ASSET" --dir "$RUNNER_TEMP/newen-web"
       - name: Preparar página y juego
         run: python tools/prepare_web_play.py "$RUNNER_TEMP/newen-web/$GAME_ASSET" "$GAME_TAG" "_site"
+      - name: Publicar tráiler junto a la web
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json, os, re, shutil, subprocess, tempfile
+          from pathlib import Path
+          choices = []
+          for line in open('releases.jsonl', encoding='utf-8'):
+              r = json.loads(line)
+              tag = r['tag_name']
+              if r['draft'] or not re.fullmatch(r'v\d+\.\d+\.\d+', tag):
+                  continue
+              for a in r['assets']:
+                  name = a['name']
+                  normalized = re.sub(r'[^a-z0-9]', '', name.lower())
+                  if a['state'] != 'uploaded' or not 0 < a['size'] <= 50_000_000:
+                      continue
+                  if not name.lower().endswith('.mp4') or 'trailer' not in normalized or 'newen' not in normalized:
+                      continue
+                  if not re.fullmatch(r'[a-zA-Z0-9_. -]+', name):
+                      continue
+                  priority = 2 if 'spritesanimados' in normalized else 1 if 'instagram' in normalized else 0
+                  choices.append((tuple(map(int,tag[1:].split('.'))),priority,a.get('updated_at',''),tag,name))
+          if choices:
+              _,_,_,tag,name = max(choices)
+              with tempfile.TemporaryDirectory() as tmp:
+                  subprocess.run(['gh','release','download',tag,'--repo',os.environ['GITHUB_REPOSITORY'],'--pattern',name,'--dir',tmp],check=True)
+                  video = Path(tmp)/name
+                  if not video.is_file() or video.stat().st_size > 50_000_000:
+                      raise SystemExit('Tráiler no válido')
+                  if sum(f.stat().st_size for f in Path('_site').rglob('*') if f.is_file()) + video.stat().st_size > 950_000_000:
+                      raise SystemExit('La web supera el límite de tamaño')
+                  dest = Path('_site/media/newen-trailer.mp4')
+                  dest.parent.mkdir(parents=True, exist_ok=True)
+                  shutil.copy2(video,dest)
+                  print('Tráiler publicado:',tag,name)
+          else:
+              print('::warning::No se encontró un MP4 de tráiler en las releases públicas')
+          PY
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
