@@ -3,7 +3,7 @@
 'use strict';
 const current=document.currentScript?.dataset.version;
 const platform=window.Capacitor?.getPlatform?.()==='android'?'android':/Android/i.test(navigator.userAgent)?'android':/Electron/i.test(navigator.userAgent)?'windows':null;
-if(!current||!platform)return;
+if(!current||platform!=='android')return;
 const base='https://github.com/zulguin/newenaraucania/releases/download/';
 const version=s=>/^v?\d+\.\d+\.\d+$/.test(s||'')?s.replace(/^v/,'').split('.').map(Number):null;
 function newer(a,b){a=version(a);b=version(b);if(!a||!b)return false;for(let i=0;i<3;i++){if(a[i]!==b[i])return a[i]>b[i]}return false}
