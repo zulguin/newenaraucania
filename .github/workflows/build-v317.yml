@@ -1,16 +1,18 @@
 name: Compilar Newen V317 para Windows y Android
 on:
+  release:
+    types: [published]
   workflow_dispatch:
     inputs:
       tag:
         description: Release que contiene el ZIP web actualizado
         required: true
-        default: v317.18.2
+        default: v317.18.5
         type: string
       web_zip:
         description: Nombre exacto del ZIP web adjunto a la release
         required: true
-        default: Newen_Araucania_V317_18_2_Visibilidad_Corregida_Web.zip
+        default: Newen_Araucania_V317_18_5_Evento_Mareas_Web.zip
         type: string
       platform:
         description: Plataformas
@@ -24,10 +26,55 @@ on:
 permissions:
   contents: write
 concurrency:
-  group: newen-build-${{ inputs.tag }}-${{ inputs.platform }}
+  group: newen-build-${{ github.event.release.tag_name || inputs.tag }}
   cancel-in-progress: false
 jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.release.outputs.ready }}
+      tag: ${{ steps.release.outputs.tag }}
+      zip: ${{ steps.release.outputs.zip }}
+      platform: ${{ steps.release.outputs.platform }}
+    steps:
+      - name: Localizar ZIP web de la versión
+        id: release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+          REQUESTED: ${{ inputs.web_zip }}
+          PLATFORM: ${{ inputs.platform || 'both' }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets,isDraft > release.json
+          python - <<'PY'
+          import json, os, re, sys
+          release = json.load(open('release.json'))
+          names = [a['name'] for a in release['assets'] if a.get('state') == 'uploaded']
+          requested = os.environ.get('REQUESTED', '')
+          pattern = r'Newen_Araucania_V[0-9_]+[A-Za-z0-9_-]*_Web\.zip'
+          candidates = [n for n in names if re.fullmatch(pattern, n)]
+          valid = not release['isDraft'] and (requested in candidates if requested else len(candidates) == 1)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write('ready=' + ('true' if valid else 'false') + '\n')
+              if valid:
+                  out.write('tag=' + os.environ['TAG'] + '\n')
+                  out.write('zip=' + (requested or candidates[0]) + '\n')
+                  out.write('platform=' + os.environ['PLATFORM'] + '\n')
+          if not valid:
+              print('No hay un ZIP web único y válido; adjúntalo y ejecuta manualmente si ya publicaste.')
+              if os.environ['EVENT'] == 'workflow_dispatch':
+                  sys.exit(1)
+          PY
   build:
+    needs: prepare
+    if: needs.prepare.outputs.ready == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -39,70 +86,91 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       GH_TOKEN: ${{ github.token }}
-      RELEASE_TAG: ${{ inputs.tag }}
+      RELEASE_TAG: ${{ needs.prepare.outputs.tag }}
       TARGET_PLATFORM: ${{ matrix.platform }}
-      REQUESTED_PLATFORM: ${{ inputs.platform }}
-      WEB_ZIP: ${{ inputs.web_zip }}
+      REQUESTED_PLATFORM: ${{ needs.prepare.outputs.platform }}
+      WEB_ZIP: ${{ needs.prepare.outputs.zip }}
       BASE_ZIP: Newen_Araucania_V316_Beta_Proyecto.zip
     steps:
       - uses: actions/checkout@v4
-        if: inputs.platform == 'both' || inputs.platform == matrix.platform
+        if: env.REQUESTED_PLATFORM == 'both' || env.REQUESTED_PLATFORM == matrix.platform
+        with:
+          ref: main
       - uses: actions/setup-node@v4
-        if: inputs.platform == 'both' || inputs.platform == matrix.platform
+        if: env.REQUESTED_PLATFORM == 'both' || env.REQUESTED_PLATFORM == matrix.platform
         with:
           node-version: '22'
       - uses: actions/setup-python@v5
-        if: inputs.platform == 'both' || inputs.platform == matrix.platform
+        if: env.REQUESTED_PLATFORM == 'both' || env.REQUESTED_PLATFORM == matrix.platform
         with:
           python-version: '3.12'
       - uses: actions/setup-java@v4
-        if: matrix.platform == 'android' && (inputs.platform == 'both' || inputs.platform == 'android')
+        if: matrix.platform == 'android' && (env.REQUESTED_PLATFORM == 'both' || env.REQUESTED_PLATFORM == 'android')
         with:
           distribution: temurin
           java-version: '21'
       - name: Descargar y preparar proyecto actualizado
-        if: inputs.platform == 'both' || inputs.platform == matrix.platform
+        if: env.REQUESTED_PLATFORM == 'both' || env.REQUESTED_PLATFORM == matrix.platform
         shell: bash
         run: |
           gh release download v316.0.0 --repo "$GITHUB_REPOSITORY" --pattern "$BASE_ZIP"
           gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$WEB_ZIP"
           python tools/prepare_v317.py "$BASE_ZIP" "$WEB_ZIP" "$RELEASE_TAG"
       - name: Instalar dependencias
-        if: inputs.platform == 'both' || inputs.platform == matrix.platform
+        if: env.REQUESTED_PLATFORM == 'both' || env.REQUESTED_PLATFORM == matrix.platform
         working-directory: project
         run: npm install --no-audit --no-fund
       - name: Compilar instalador Windows
-        if: matrix.platform == 'windows' && (inputs.platform == 'both' || inputs.platform == 'windows')
+        if: matrix.platform == 'windows' && (env.REQUESTED_PLATFORM == 'both' || env.REQUESTED_PLATFORM == 'windows')
         working-directory: project
         run: npm run build:win -- --publish never
       - name: Adjuntar instalador Windows
-        if: matrix.platform == 'windows' && (inputs.platform == 'both' || inputs.platform == 'windows')
+        if: matrix.platform == 'windows' && (env.REQUESTED_PLATFORM == 'both' || env.REQUESTED_PLATFORM == 'windows')
         shell: pwsh
         run: |
           $files = @(Get-ChildItem project/dist -Filter *.exe -File)
           if (!$files.Count) { throw "No se produjo instalador EXE" }
           $files += @(Get-ChildItem project/dist -File | Where-Object { $_.Name -like "*.blockmap" -or $_.Name -eq "latest.yml" })
+          $existing = (gh release view "$env:RELEASE_TAG" --repo "$env:GITHUB_REPOSITORY" --json assets | ConvertFrom-Json).assets.name
+          if ($LASTEXITCODE -ne 0) { throw "Error consultando release" }
           foreach ($f in $files) {
+            if ($existing -contains $f.Name) { Write-Host "Ya publicado: $($f.Name)"; continue }
             gh release upload "$env:RELEASE_TAG" "$($f.FullName)" --repo "$env:GITHUB_REPOSITORY"
             if ($LASTEXITCODE -ne 0) { throw "Error subiendo instalador" }
           }
       - name: Preparar Android
-        if: matrix.platform == 'android' && (inputs.platform == 'both' || inputs.platform == 'android')
+        if: matrix.platform == 'android' && (env.REQUESTED_PLATFORM == 'both' || env.REQUESTED_PLATFORM == 'android')
         working-directory: project
         shell: bash
         run: |
           if [ ! -d android ]; then npx cap add android; fi
           npx cap sync android
           python ../tools/prepare_v317.py --android "$RELEASE_TAG"
+      - name: Restaurar firma Android persistente
+        if: matrix.platform == 'android' && (env.REQUESTED_PLATFORM == 'both' || env.REQUESTED_PLATFORM == 'android')
+        shell: bash
+        env:
+          ANDROID_KEY: ${{ secrets.NEWEN_ANDROID_DEBUG_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$ANDROID_KEY" ]; then
+            mkdir -p "$HOME/.android"
+            printf '%s' "$ANDROID_KEY" | base64 --decode > "$HOME/.android/debug.keystore"
+            chmod 600 "$HOME/.android/debug.keystore"
+            keytool -list -keystore "$HOME/.android/debug.keystore" -storepass android -alias androiddebugkey >/dev/null
+          else
+            echo "::warning::No se configuró la firma persistente Android; esta APK puede exigir desinstalar la versión anterior."
+          fi
       - name: Compilar APK beta
-        if: matrix.platform == 'android' && (inputs.platform == 'both' || inputs.platform == 'android')
+        if: matrix.platform == 'android' && (env.REQUESTED_PLATFORM == 'both' || env.REQUESTED_PLATFORM == 'android')
         working-directory: project/android
         run: |
           chmod +x gradlew
           ./gradlew assembleDebug
       - name: Adjuntar APK beta
-        if: matrix.platform == 'android' && (inputs.platform == 'both' || inputs.platform == 'android')
+        if: matrix.platform == 'android' && (env.REQUESTED_PLATFORM == 'both' || env.REQUESTED_PLATFORM == 'android')
         shell: bash
         run: |
           cp project/android/app/build/outputs/apk/debug/app-debug.apk "Newen-Araucania-${RELEASE_TAG#v}-beta-debug.apk"
-          gh release upload "$RELEASE_TAG" "Newen-Araucania-${RELEASE_TAG#v}-beta-debug.apk" --repo "$GITHUB_REPOSITORY"
+          NAME="Newen-Araucania-${RELEASE_TAG#v}-beta-debug.apk"
+          EXISTING=$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json assets --jq '.assets[].name')
+          if grep -Fxq "$NAME" <<< "$EXISTING"; then echo "APK ya publicada"; else gh release upload "$RELEASE_TAG" "$NAME" --repo "$GITHUB_REPOSITORY"; fi
