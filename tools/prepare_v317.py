@@ -54,6 +54,27 @@ pkg = json.loads(pkgfile.read_text(encoding="utf-8"))
 pkg["version"] = v
 pkg["repository"] = {"type": "git", "url": "https://github.com/zulguin/newenaraucania.git"}
 pkg.setdefault("build", {})["publish"] = [{"provider":"github","owner":"zulguin","repo":"newenaraucania","channel":"latest"}]
+# Keep the existing Electron entry and add a native updater for public betas.
+tools_dir = Path(__file__).resolve().parent
+main = pkg.get("main", "index.js")
+if not (project / main).is_file():
+    raise SystemExit("Cannot identify original Electron entry: " + main)
+(project / "newen-original-main.json").write_text(json.dumps({"main": main}), encoding="utf-8")
+shutil.copy2(tools_dir / "newen_windows_updater.cjs", project / "newen_windows_updater.cjs")
+pkg["main"] = "newen_windows_updater.cjs"
+deps = pkg.setdefault("dependencies", {})
+deps.setdefault("electron-updater", "^6.3.9")
+core = deps.get("@capacitor/core") or pkg.get("devDependencies", {}).get("@capacitor/core", "")
+cap_major = re.search(r"\d+", core)
+if cap_major:
+    deps.setdefault("@capacitor/browser", "^" + cap_major.group() + ".0.0")
+# If the native package restricts its file list, explicitly include the new entry.
+files = pkg["build"].get("files")
+if isinstance(files, str):
+    files = [files]
+if isinstance(files, list):
+    files += ["newen_windows_updater.cjs", "newen-original-main.json"]
+    pkg["build"]["files"] = files
 pkgfile.write_text(json.dumps(pkg, indent=2) + "\n", encoding="utf-8")
 targets = set()
 for cfg in project.glob("capacitor.config.*"):
@@ -77,6 +98,14 @@ for p in project.rglob("index.html"):
 for p in sorted(targets):
     p.mkdir(parents=True, exist_ok=True)
     shutil.copytree(stage, p, dirs_exist_ok=True)
+    # Android uses an update notice and opens the APK in a browser, not silent installation.
+    shutil.copy2(tools_dir / "newen_update_notice.js", p / "assets" / "newen_update_notice.js")
+    html = p / "index.html"
+    page = html.read_text(encoding="utf-8")
+    hook = '<script src="assets/newen_update_notice.js" data-version="' + v + '"></script>'
+    if "</body>" not in page:
+        raise SystemExit("Cannot insert update notice: missing body")
+    html.write_text(page.replace("</body>", hook + "\n</body>", 1), encoding="utf-8")
     for f in required:
         if not (p / f).is_file():
             raise SystemExit("Overlay verification failed: " + str(p / f))
