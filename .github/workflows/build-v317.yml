@@ -5,7 +5,12 @@ on:
       tag:
         description: Release que contiene el ZIP web actualizado
         required: true
-        default: v317.18.1
+        default: v317.18.2
+        type: string
+      web_zip:
+        description: Nombre exacto del ZIP web adjunto a la release
+        required: true
+        default: Newen_Araucania_V317_18_2_Visibilidad_Corregida_Web.zip
         type: string
       platform:
         description: Plataformas
@@ -37,7 +42,7 @@ jobs:
       RELEASE_TAG: ${{ inputs.tag }}
       TARGET_PLATFORM: ${{ matrix.platform }}
       REQUESTED_PLATFORM: ${{ inputs.platform }}
-      WEB_ZIP: Newen_Araucania_V317_18_Efectos_Mejorados_Web.zip
+      WEB_ZIP: ${{ inputs.web_zip }}
       BASE_ZIP: Newen_Araucania_V316_Beta_Proyecto.zip
     steps:
       - uses: actions/checkout@v4
