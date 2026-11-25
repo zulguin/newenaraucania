@@ -1,0 +1,74 @@
+name: Publicar web jugable para iOS y PC
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - 'tools/prepare_web_play.py'
+      - '.github/workflows/deploy-web-game.yml'
+      - 'Newen_Araucania_Galeria_Web_*.zip'
+  release:
+    types: [published, edited]
+  workflow_dispatch:
+  schedule:
+    - cron: '35 4 * * *'
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: newen-pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/configure-pages@v5
+      - name: Elegir última versión web publicada
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" --jq '.[]' > releases.jsonl
+          python - <<'PY'
+          import json, os, re
+          choices = []
+          for line in open('releases.jsonl'):
+              r = json.loads(line)
+              tag = r['tag_name']
+              if r['draft'] or not re.fullmatch(r'v\d+\.\d+\.\d+', tag):
+                  continue
+              assets = [a['name'] for a in r['assets'] if a['state']=='uploaded'
+                        and re.fullmatch(r'Newen_Araucania_V[0-9_]+[A-Za-z0-9_-]*_Web\.zip', a['name'])]
+              if len(assets) == 1:
+                  choices.append((tuple(map(int,tag[1:].split('.'))),tag,assets[0]))
+          if not choices:
+              raise SystemExit('Publica una release que incluya un ZIP web completo')
+          _,tag,asset = max(choices)
+          with open(os.environ['GITHUB_ENV'],'a') as f:
+              f.write('GAME_TAG='+tag+'\nGAME_ASSET='+asset+'\n')
+          print('Versión web:',tag,asset)
+          PY
+          gh release download "$GAME_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$GAME_ASSET" --dir "$RUNNER_TEMP/newen-web"
+      - name: Preparar página y juego
+        run: python tools/prepare_web_play.py "$RUNNER_TEMP/newen-web/$GAME_ASSET" "$GAME_TAG" "_site"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar web oficial
+        id: deployment
+        uses: actions/deploy-pages@v4
