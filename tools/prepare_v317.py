@@ -12,6 +12,54 @@ def version(tag):
         raise SystemExit("Use a tag such as v317.18.1")
     return v
 
+
+def apply_android_icons():
+    icons = Path("newen-native-icons")
+    if not icons.is_dir():
+        print("No custom icon pack; keeping existing Android icons")
+        return
+    res = Path("android/app/src/main/res")
+    manifest = Path("android/app/src/main/AndroidManifest.xml")
+    if not res.is_dir() or not manifest.is_file():
+        raise SystemExit("Android resources unavailable")
+    for density in ("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi"):
+        folder = "mipmap-" + density
+        dest = res / folder
+        dest.mkdir(parents=True, exist_ok=True)
+        for name in ("newen_launcher.png", "newen_launcher_round.png", "newen_launcher_foreground.png"):
+            shutil.copy2(icons / folder / name, dest / name)
+    values = res / "values"
+    values.mkdir(exist_ok=True)
+    (values / "newen_icon_colors.xml").write_text(
+        '<?xml version="1.0" encoding="utf-8"?>\n<resources><color name="newen_icon_background">#080E20</color></resources>\n',
+        encoding="utf-8")
+    adaptive = res / "mipmap-anydpi-v26"
+    adaptive.mkdir(exist_ok=True)
+    xml = ('<?xml version="1.0" encoding="utf-8"?>\n'
+           '<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">\n'
+           '  <background android:drawable="@color/newen_icon_background"/>\n'
+           '  <foreground android:drawable="@mipmap/newen_launcher_foreground"/>\n'
+           '</adaptive-icon>\n')
+    for name in ("newen_launcher.xml", "newen_launcher_round.xml"):
+        (adaptive / name).write_text(xml, encoding="utf-8")
+    page = manifest.read_text(encoding="utf-8")
+    def set_icons(match):
+        tag = match.group(0)
+        for key, value in (("icon", "@mipmap/newen_launcher"),
+                           ("roundIcon", "@mipmap/newen_launcher_round")):
+            pattern = r'\bandroid:' + key + r'\s*=\s*["\x27][^"\x27]*["\x27]'
+            attr = 'android:' + key + '="' + value + '"'
+            if re.search(pattern, tag):
+                tag = re.sub(pattern, attr, tag, count=1)
+            else:
+                tag = tag[:-1] + " " + attr + ">"
+        return tag
+    page, count = re.subn(r"<application\b[^>]*>", set_icons, page, count=1)
+    if count != 1:
+        raise SystemExit("Cannot identify Android application icon")
+    manifest.write_text(page, encoding="utf-8")
+    print("Newen icons installed: Android launcher and adaptive icon")
+
 if sys.argv[1] == "--android":
     v = version(sys.argv[2])
     major, minor, patch = map(int, v.split("."))
@@ -31,6 +79,7 @@ if sys.argv[1] == "--android":
     if n != 1:
         raise SystemExit("Cannot identify native Android versionName")
     gradle.write_text(s, encoding="utf-8")
+    apply_android_icons()
     print("Android:", v, code)
     sys.exit(0)
 
@@ -75,6 +124,24 @@ if isinstance(files, str):
 if isinstance(files, list):
     files += ["newen_windows_updater.cjs", "newen-original-main.json"]
     pkg["build"]["files"] = files
+
+# The icon pack travels in the full web ZIP; the native builder uses the same
+# artwork for Windows and Android without needing extra image dependencies.
+icons = stage / "assets" / "native-icons"
+if icons.is_dir():
+    dest = project / "newen-native-icons"
+    shutil.copytree(icons, dest, dirs_exist_ok=True)
+    if not (dest / "newen.ico").is_file():
+        raise SystemExit("Missing Windows icon in native icon pack")
+    icon_path = "newen-native-icons/newen.ico"
+    pkg["build"].setdefault("win", {})["icon"] = icon_path
+    nsis = pkg["build"].setdefault("nsis", {})
+    for key in ("installerIcon", "uninstallerIcon", "installerHeaderIcon"):
+        nsis[key] = icon_path
+    print("Newen icons installed: Windows EXE and NSIS installer")
+else:
+    print("No custom icon pack; keeping existing Windows icons")
+
 pkgfile.write_text(json.dumps(pkg, indent=2) + "\n", encoding="utf-8")
 targets = set()
 for cfg in project.glob("capacitor.config.*"):
