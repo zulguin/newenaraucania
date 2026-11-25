@@ -37,7 +37,7 @@ async function check(){
 }
 // Conserva el punto de entrada original. No altera el directorio de partidas.
 (async()=>{
- await import(pathToFileURL(original).href);
+ try{require(original)}catch(e){if(e.code!=='ERR_REQUIRE_ESM')throw e;await import(pathToFileURL(original).href)}
  await app.whenReady();
  setTimeout(check,15000);
  const timer=setInterval(check,60*60*1000);timer.unref?.();
