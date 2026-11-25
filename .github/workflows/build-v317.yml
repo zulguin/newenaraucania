@@ -1,0 +1,103 @@
+name: Compilar Newen V317 para Windows y Android
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release que contiene el ZIP web actualizado
+        required: true
+        default: v317.18.1
+        type: string
+      platform:
+        description: Plataformas
+        required: true
+        default: both
+        type: choice
+        options:
+          - both
+          - windows
+          - android
+permissions:
+  contents: write
+concurrency:
+  group: newen-build-${{ inputs.tag }}-${{ inputs.platform }}
+  cancel-in-progress: false
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: windows
+            os: windows-latest
+          - platform: android
+            os: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ inputs.tag }}
+      TARGET_PLATFORM: ${{ matrix.platform }}
+      REQUESTED_PLATFORM: ${{ inputs.platform }}
+      WEB_ZIP: Newen_Araucania_V317_18_Efectos_Mejorados_Web.zip
+      BASE_ZIP: Newen_Araucania_V316_Beta_Proyecto.zip
+    steps:
+      - uses: actions/checkout@v4
+        if: inputs.platform == 'both' || inputs.platform == matrix.platform
+      - uses: actions/setup-node@v4
+        if: inputs.platform == 'both' || inputs.platform == matrix.platform
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        if: inputs.platform == 'both' || inputs.platform == matrix.platform
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-java@v4
+        if: matrix.platform == 'android' && (inputs.platform == 'both' || inputs.platform == 'android')
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Descargar y preparar proyecto actualizado
+        if: inputs.platform == 'both' || inputs.platform == matrix.platform
+        shell: bash
+        run: |
+          gh release download v316.0.0 --repo "$GITHUB_REPOSITORY" --pattern "$BASE_ZIP"
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern "$WEB_ZIP"
+          python tools/prepare_v317.py "$BASE_ZIP" "$WEB_ZIP" "$RELEASE_TAG"
+      - name: Instalar dependencias
+        if: inputs.platform == 'both' || inputs.platform == matrix.platform
+        working-directory: project
+        run: npm install --no-audit --no-fund
+      - name: Compilar instalador Windows
+        if: matrix.platform == 'windows' && (inputs.platform == 'both' || inputs.platform == 'windows')
+        working-directory: project
+        run: npm run build:win -- --publish never
+      - name: Adjuntar instalador Windows
+        if: matrix.platform == 'windows' && (inputs.platform == 'both' || inputs.platform == 'windows')
+        shell: pwsh
+        run: |
+          $files = @(Get-ChildItem project/dist -Filter *.exe -File)
+          if (!$files.Count) { throw "No se produjo instalador EXE" }
+          $files += @(Get-ChildItem project/dist -File | Where-Object { $_.Name -like "*.blockmap" -or $_.Name -eq "latest.yml" })
+          foreach ($f in $files) {
+            gh release upload "$env:RELEASE_TAG" "$($f.FullName)" --repo "$env:GITHUB_REPOSITORY"
+            if ($LASTEXITCODE -ne 0) { throw "Error subiendo instalador" }
+          }
+      - name: Preparar Android
+        if: matrix.platform == 'android' && (inputs.platform == 'both' || inputs.platform == 'android')
+        working-directory: project
+        shell: bash
+        run: |
+          if [ ! -d android ]; then npx cap add android; fi
+          npx cap sync android
+          python ../tools/prepare_v317.py --android "$RELEASE_TAG"
+      - name: Compilar APK beta
+        if: matrix.platform == 'android' && (inputs.platform == 'both' || inputs.platform == 'android')
+        working-directory: project/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+      - name: Adjuntar APK beta
+        if: matrix.platform == 'android' && (inputs.platform == 'both' || inputs.platform == 'android')
+        shell: bash
+        run: |
+          cp project/android/app/build/outputs/apk/debug/app-debug.apk "Newen-Araucania-${RELEASE_TAG#v}-beta-debug.apk"
+          gh release upload "$RELEASE_TAG" "Newen-Araucania-${RELEASE_TAG#v}-beta-debug.apk" --repo "$GITHUB_REPOSITORY"
